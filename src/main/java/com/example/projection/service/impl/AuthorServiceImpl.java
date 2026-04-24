@@ -1,6 +1,7 @@
 package com.example.projection.service.impl;
 
 import com.example.projection.dto.AuthorResponse;
+import com.example.projection.dto.AuthorWithBooksProjection;
 import com.example.projection.entity.Author;
 import com.example.projection.entity.Book;
 import com.example.projection.repository.AuthorRepo;
@@ -17,6 +18,9 @@ public class AuthorServiceImpl implements AuthorService {
 
     private final AuthorRepo authorRepo;
 
+    /**
+     * Cách cũ: Fetch entity rồi map manual (có vấn đề circular reference)
+     */
     @Transactional(readOnly = true)
     public List<AuthorResponse> getAllWithNPlus1() {
         List<Author> authors = authorRepo.findAllWithBook();
@@ -26,11 +30,17 @@ public class AuthorServiceImpl implements AuthorService {
                     .map(Book::getTitle)
                     .toList();
 
-            return AuthorResponse.builder()
-                    .id(author.getId())
-                    .name(author.getName())
-                    .bookTitles(bookTitles)
-                    .build();
+            return new AuthorResponse(author.getId(), author.getName(), bookTitles);
         }).toList();
+    }
+
+    /**
+     * Cách tối ưu 2: Sử dụng nested projection (author + books)
+     * - Tránh hoàn toàn circular reference
+     * - Một query duy nhất với JOIN FETCH
+     * - Dữ liệu sạch và tối ưu
+     */
+    public List<AuthorWithBooksProjection> getAllWithBooksOptimized() {
+        return authorRepo.findAllWithBooksProjection();
     }
 }

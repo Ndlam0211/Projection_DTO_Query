@@ -9,3 +9,4 @@ public interface BookWithProjection {
         String getName();
     }
 }
+
