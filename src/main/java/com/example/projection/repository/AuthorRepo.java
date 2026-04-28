@@ -28,4 +28,7 @@ public interface AuthorRepo extends JpaRepository<Author, Integer> {
     @EntityGraph(attributePaths = {"books"})
     @Query("SELECT a FROM Author a")
     List<AuthorWithBooksProjection> findAllWithBooksProjection();
+
+    // Generic projection method - có thể trả về bất kỳ kiểu nào (entity, dto, projection interface)
+    <T> List<T> findBy(Class<T> type);
 }
